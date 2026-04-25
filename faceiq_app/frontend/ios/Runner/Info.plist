@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Add the NSPhotoLibraryUsageDescription key to your ios/Runner/Info.plist
+-->
+<plist version="1.0">
+<dict>
+    <!-- Photo library access -->
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>FaceIQ Labs needs access to your photo library to analyze facial proportions.</string>
+
+    <!-- Camera access (optional, for live capture) -->
+    <key>NSCameraUsageDescription</key>
+    <string>FaceIQ Labs can use your camera to take photos for facial analysis.</string>
+
+    <!-- Other standard keys -->
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>FaceIQ Labs may save analysis results to your photo library.</string>
+</dict>
+</plist>
