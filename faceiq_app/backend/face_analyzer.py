@@ -18,8 +18,10 @@ from domain.geometry import (
     score_from_range as _score_from_range,
     signed_dist_to_line,
 )
+from domain.metric_registry import get_by_category
 from infrastructure.image_decoder import ImageDecodeError, decode_image
 from infrastructure.landmark_detector import MediaPipeDetector
+import metrics  # Registers migrated metric modules.
 
 
 # ─── MediaPipe FaceMesh landmark indices ─────────────────────────────────────
@@ -137,6 +139,20 @@ def compute_frontal_ratios(lm: Dict) -> List[RatioResult]:
             interpretation=interp, category=cat,
         ))
 
+    def add_metric(metric) -> None:
+        value = metric.compute(lm)
+        if value is None or not math.isfinite(value):
+            return
+        add(
+            metric.name,
+            value,
+            metric.ideal_min,
+            metric.ideal_max,
+            metric.unit,
+            metric.interpret(value),
+            metric.category,
+        )
+
     def p(k): return lm.get(k)
 
     nasion    = p("nasion")
@@ -172,18 +188,14 @@ def compute_frontal_ratios(lm: Dict) -> List[RatioResult]:
     # 1. FACIAL THIRDS
     # ═══════════════════════════════════════════════════════════════════════════
     cat = "Facial Thirds"
+    for metric in get_by_category(cat):
+        add_metric(metric)
     if glabella and nasion and subnasale and pogonion:
         gl_me = dist(glabella, pogonion)
         if gl_me > 0:
             top = dist(glabella, nasion) / gl_me * 100
             mid = dist(nasion, subnasale) / gl_me * 100
             low = dist(subnasale, pogonion) / gl_me * 100
-            add("Upper Third", top, 28, 38, "%",
-                "Forehead height as % of total face height. ~33% is the classical ideal.", cat)
-            add("Middle Third", mid, 28, 36, "%",
-                "Midface height (nasion to subnasale) as % of total face. ~33% ideal.", cat)
-            add("Lower Third", low, 30, 38, "%",
-                "Lower face height (subnasale to chin) as % of total. ~33% ideal.", cat)
             # Upper:Lower ratio
             if low > 0:
                 add("Upper-to-Lower Third Ratio", top / low, 0.85, 1.15, "×",
