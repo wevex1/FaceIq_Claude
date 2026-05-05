@@ -6,7 +6,6 @@ Implements ALL 70+ facial ratios described in the document.
 
 import math
 import numpy as np
-import mediapipe as mp
 import cv2
 from dataclasses import dataclass, field
 from typing import Optional, Tuple, List, Dict
@@ -20,6 +19,7 @@ from domain.geometry import (
     signed_dist_to_line,
 )
 from infrastructure.image_decoder import ImageDecodeError, decode_image
+from infrastructure.landmark_detector import MediaPipeDetector
 
 
 # ─── MediaPipe FaceMesh landmark indices ─────────────────────────────────────
@@ -117,35 +117,8 @@ def score_from_range(value: float, ideal_min: float, ideal_max: float,
 
 def extract_landmarks(image_bgr: np.ndarray,
                       refine: bool = True) -> Optional[Dict]:
-    mp_face_mesh = mp.solutions.face_mesh
-    h, w = image_bgr.shape[:2]
-    rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
-
-    with mp_face_mesh.FaceMesh(
-        static_image_mode=True,
-        max_num_faces=1,
-        refine_landmarks=refine,
-        min_detection_confidence=0.5,
-    ) as fm:
-        res = fm.process(rgb)
-
-    if not res.multi_face_landmarks:
-        return None
-
-    raw = res.multi_face_landmarks[0].landmark
-
-    def px(idx: int) -> Tuple[float, float]:
-        lm = raw[idx]
-        return (lm.x * w, lm.y * h)
-
-    named: Dict[str, Tuple[float, float]] = {}
-    for name, idx in MP_INDICES.items():
-        try:
-            named[name] = px(idx)
-        except IndexError:
-            pass
-
-    return named
+    detector = MediaPipeDetector.get_instance(refine_landmarks=refine)
+    return detector.detect(image_bgr, MP_INDICES)
 
 
 # ─── FRONTAL RATIOS (40+ metrics) ────────────────────────────────────────────

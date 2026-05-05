@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from face_analyzer import analyze_image, RatioResult, AnalysisOutput, detect_landmarks_only, analyze_with_custom_landmarks
+from infrastructure.landmark_detector import MediaPipeDetector
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -130,6 +131,12 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+
+@app.on_event("startup")
+async def startup_event():
+    MediaPipeDetector.get_instance(refine_landmarks=True)
+    logger.info("MediaPipe FaceMesh loaded.")
 
 
 @app.post("/analyze/frontal", response_model=AnalysisResponse)
