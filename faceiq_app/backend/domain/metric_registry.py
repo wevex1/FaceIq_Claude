@@ -10,9 +10,16 @@ from domain.interfaces import IMetric
 _REGISTRY: List[IMetric] = []
 
 
+def register_metric(metric: IMetric) -> IMetric:
+    if not any(
+        type(existing) is type(metric) and existing.name == metric.name for existing in _REGISTRY
+    ):
+        _REGISTRY.append(metric)
+    return metric
+
+
 def register(cls: Type[IMetric]) -> Type[IMetric]:
-    if not any(type(metric) is cls for metric in _REGISTRY):
-        _REGISTRY.append(cls())
+    register_metric(cls())
     return cls
 
 

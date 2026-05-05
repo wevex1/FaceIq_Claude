@@ -72,3 +72,39 @@ class LowerThird(_BaseFacialThirdMetric):
 
     def interpret(self, value: float) -> str:
         return "Lower face height (subnasale to chin) as % of total. ~33% ideal."
+
+
+@register
+class UpperToLowerThirdRatio:
+    name = "Upper-to-Lower Third Ratio"
+    category = "Facial Thirds"
+    ideal_min = 0.85
+    ideal_max = 1.15
+    unit = "Ã—"
+
+    def compute(self, lm: LandmarkMap) -> Optional[float]:
+        segments = _third_segments(lm)
+        if not segments or segments[2] <= 0:
+            return None
+        return segments[0] / segments[2]
+
+    def interpret(self, value: float) -> str:
+        return "Balance between forehead and lower face. 1.0 = perfect symmetry."
+
+
+@register
+class MidToLowerThirdRatio:
+    name = "Mid-to-Lower Third Ratio"
+    category = "Facial Thirds"
+    ideal_min = 0.80
+    ideal_max = 1.10
+    unit = "Ã—"
+
+    def compute(self, lm: LandmarkMap) -> Optional[float]:
+        segments = _third_segments(lm)
+        if not segments or segments[2] <= 0:
+            return None
+        return segments[1] / segments[2]
+
+    def interpret(self, value: float) -> str:
+        return "Midface to lower face balance. 1.0 = harmonious proportion."

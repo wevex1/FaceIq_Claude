@@ -153,6 +153,19 @@ def compute_frontal_ratios(lm: Dict) -> List[RatioResult]:
             metric.category,
         )
 
+    for category in (
+        "Facial Thirds",
+        "Face Shape",
+        "Eyes & Brows",
+        "Nose (Frontal)",
+        "Mouth & Lips",
+        "Jaw & Chin",
+    ):
+        for metric in get_by_category(category):
+            add_metric(metric)
+
+    return results
+
     def p(k): return lm.get(k)
 
     nasion    = p("nasion")
@@ -503,6 +516,32 @@ def compute_profile_ratios(lm: Dict) -> List[RatioResult]:
             unit=unit, score=round(s, 1),
             interpretation=interp, category=cat,
         ))
+
+    def add_metric(metric) -> None:
+        value = metric.compute(lm)
+        if value is None or not math.isfinite(value):
+            return
+        add(
+            metric.name,
+            value,
+            metric.ideal_min,
+            metric.ideal_max,
+            metric.unit,
+            metric.interpret(value),
+            metric.category,
+        )
+
+    for category in (
+        "Upper Face (Profile)",
+        "Facial Convexity",
+        "Nose (Profile)",
+        "Lips (Profile)",
+        "Jaw & Chin (Profile)",
+    ):
+        for metric in get_by_category(category):
+            add_metric(metric)
+
+    return results
 
     def p(k): return lm.get(k)
 
