@@ -19,6 +19,7 @@ from domain.geometry import (
     score_from_range as _score_from_range,
     signed_dist_to_line,
 )
+from infrastructure.image_decoder import ImageDecodeError, decode_image
 
 
 # ─── MediaPipe FaceMesh landmark indices ─────────────────────────────────────
@@ -773,10 +774,10 @@ def compute_profile_ratios(lm: Dict) -> List[RatioResult]:
 # ─── Main analysis entry point ────────────────────────────────────────────────
 
 def analyze_image(image_bytes: bytes, image_type: str) -> AnalysisOutput:
-    arr = np.frombuffer(image_bytes, dtype=np.uint8)
-    img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
-    if img is None:
-        return AnalysisOutput(success=False, error="Could not decode image.", image_type=image_type)
+    try:
+        img = decode_image(image_bytes)
+    except ImageDecodeError as exc:
+        return AnalysisOutput(success=False, error=str(exc), image_type=image_type)
 
     landmarks = extract_landmarks(img, refine=True)
     if landmarks is None:
